@@ -21,13 +21,20 @@
  * THE SOFTWARE.
  */
 
-part of money;
+export 'currency.dart';
+import 'package:built_value/built_value.dart';
+import 'package:built_value/serializer.dart';
+import 'package:money/src/currency.dart';
 
-class Money implements Comparable<Money> {
-  final int amount;
-  final Currency currency;
+part 'money.g.dart';
 
-  Money(this.amount, this.currency);
+abstract class Money implements Built<Money, MoneyBuilder>, Comparable<Money> {
+  int get amount;
+  Currency get currency;
+
+  Money._();
+  factory Money([updates(MoneyBuilder b)]) = _$Money;
+  static Serializer<Money> get serializer => _$moneySerializer;
 
   /// Parses amount from string representation.
   ///
@@ -38,7 +45,11 @@ class Money implements Comparable<Money> {
   ///     Money.fromString('120', Currency('USD');
   ///     Money.fromString('120.00', Currency('USD');
   ///     Money.fromString('120.000', Currency('IQD');
-  ///
+
+  factory Money.fromInt(int amount, Currency currency) {
+    return _$Money._(amount: amount, currency: currency);
+  }
+
   factory Money.fromString(String amount, Currency currency) {
     final pattern = r'^(-)?(\d+)(?:\.(\d{' +
         currency.defaultFractionDigits.toString() +
@@ -62,11 +73,11 @@ class Money implements Comparable<Money> {
       intAmount *= -1;
     }
 
-    return Money(intAmount, currency);
+    return Money.fromInt(intAmount, currency);
   }
 
   factory Money.fromDouble(double amount, Currency currency) {
-    return Money((amount * currency.subUnit).round(), currency);
+    return Money.fromInt((amount * currency.subUnit).round(), currency);
   }
 
   /// String representation of the [amount].
@@ -134,22 +145,6 @@ class Money implements Comparable<Money> {
     return results;
   }
 
-  int get hashCode {
-    var result = 17;
-    result = 37 * result + amount.hashCode;
-    result = 37 * result + currency.hashCode;
-
-    return result;
-  }
-
-  /// Returns true if [amount] and [currency] of this object
-  /// are equal to amount and currency of other.
-  bool operator ==(Object other) {
-    return (other is Money) &&
-        (currency == other.currency) &&
-        (amount == other.amount);
-  }
-
   /// Relational less than operator.
   bool operator <(Money other) {
     _assertSameCurrency(other);
@@ -191,7 +186,7 @@ class Money implements Comparable<Money> {
   }
 
   Money _newMoney(int amount) {
-    return Money(amount, currency);
+    return Money.fromInt(amount, currency);
   }
 
   void _assertSameCurrency(Money money) {

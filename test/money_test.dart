@@ -21,6 +21,7 @@
  * THE SOFTWARE.
  */
 
+import 'package:money/src/currency.dart';
 import 'package:test/test.dart';
 import 'package:money/money.dart';
 
@@ -31,25 +32,30 @@ class MockCurrency implements Currency {
 
   final String code;
   final String name;
-  final int    numericCode;
-  final int    defaultFractionDigits;
-  final int    subUnit;
+  final int numericCode;
+  final int defaultFractionDigits;
+  final int subUnit;
 
-  const MockCurrency(
-    this.code,
-    this.name,
-    this.numericCode,
-    this.defaultFractionDigits,
-    this.subUnit
-  );
+  const MockCurrency(this.code, this.name, this.numericCode,
+      this.defaultFractionDigits, this.subUnit);
 
   String toString() => code;
+
+  @override
+  Currency rebuild(Function(CurrencyBuilder builder) updates) {
+    // TODO: implement rebuild
+  }
+
+  @override
+  CurrencyBuilder toBuilder() {
+    // TODO: implement toBuilder
+  }
 }
 
 void main() {
   group('Money', () {
     test('Money()', () {
-      final money = Money(100, MockCurrency.usd);
+      final money = Money.fromInt(100, MockCurrency.usd);
 
       expect(money.amount, equals(100));
       expect(money.currency, same(MockCurrency.usd));
@@ -112,11 +118,11 @@ void main() {
         expect(money.currency, MockCurrency.usd);
       });
 
-      test('throws FormatException for "120.00" and IQD currency (3 fraction digits should be)', () {
-        expect(
-          () => Money.fromString('120.00', MockCurrency.iqd),
-          throwsA(const TypeMatcher<FormatException>())
-        );
+      test(
+          'throws FormatException for "120.00" and IQD currency (3 fraction digits should be)',
+          () {
+        expect(() => Money.fromString('120.00', MockCurrency.iqd),
+            throwsA(const TypeMatcher<FormatException>()));
       });
 
       test('throws FormatEception for incorrect strings', () {
@@ -128,7 +134,8 @@ void main() {
         ];
 
         for (var value in values) {
-          expect(() => Money.fromString(value, MockCurrency.usd), throwsA(const TypeMatcher<FormatException>()));
+          expect(() => Money.fromString(value, MockCurrency.usd),
+              throwsA(const TypeMatcher<FormatException>()));
         }
       });
     });
@@ -186,25 +193,25 @@ void main() {
 
     group('get amountAsString', () {
       test('0.00 USD', () {
-        final money = Money(0, MockCurrency.usd);
+        final money = Money.fromInt(0, MockCurrency.usd);
 
         expect(money.amountAsString, equals('0.00'));
       });
 
       test('10.50 USD', () {
-        final money = Money(1050, MockCurrency.usd);
+        final money = Money.fromInt(1050, MockCurrency.usd);
 
         expect(money.amountAsString, equals('10.50'));
       });
 
       test('-10.00 USD', () {
-        final money = Money(-1000, MockCurrency.usd);
+        final money = Money.fromInt(-1000, MockCurrency.usd);
 
         expect(money.amountAsString, equals('-10.00'));
       });
 
       test('5.300 IQD', () {
-        final money = Money(5300, MockCurrency.iqd);
+        final money = Money.fromInt(5300, MockCurrency.iqd);
 
         expect(money.amountAsString, equals('5.300'));
       });
@@ -212,8 +219,8 @@ void main() {
 
     group('==()', () {
       test('0.00 USD == 0.00 USD', () {
-        final a = Money(0, MockCurrency.usd);
-        final b = Money(-0, MockCurrency.usd);
+        final a = Money.fromInt(0, MockCurrency.usd);
+        final b = Money.fromInt(-0, MockCurrency.usd);
 
         expect(a == a, isTrue);
         expect(a == b, isTrue);
@@ -221,31 +228,31 @@ void main() {
       });
 
       test('the same amount and currencies', () {
-        final money1 = Money(1000, MockCurrency.usd);
-        final money2 = Money(1000, MockCurrency.usd);
+        final money1 = Money.fromInt(1000, MockCurrency.usd);
+        final money2 = Money.fromInt(1000, MockCurrency.usd);
 
         expect(money1 == money2, isTrue);
         expect(money1.hashCode == money2.hashCode, isTrue);
       });
 
       test('the same currency but different amounts', () {
-        final money1 = Money(1000, MockCurrency.usd);
-        final money2 = Money(2000, MockCurrency.usd);
+        final money1 = Money.fromInt(1000, MockCurrency.usd);
+        final money2 = Money.fromInt(2000, MockCurrency.usd);
 
         expect(money1 == money2, isFalse);
         expect(money1.hashCode == money2.hashCode, isFalse);
       });
 
       test('the same amount but different currencies', () {
-        final money1 = Money(1000, MockCurrency.usd);
-        final money2 = Money(1000, MockCurrency.eur);
+        final money1 = Money.fromInt(1000, MockCurrency.usd);
+        final money2 = Money.fromInt(1000, MockCurrency.eur);
 
         expect(money1 == money2, isFalse);
       });
 
       test('different amounts and currencies', () {
-        final money1 = Money(0, MockCurrency.usd);
-        final money2 = Money(1000, MockCurrency.eur);
+        final money1 = Money.fromInt(0, MockCurrency.usd);
+        final money2 = Money.fromInt(1000, MockCurrency.eur);
 
         expect(money1 == money2, isFalse);
       });
@@ -253,139 +260,137 @@ void main() {
 
     group('unary -()', () {
       test('amount is zero', () {
-        final money = Money(0, MockCurrency.usd);
+        final money = Money.fromInt(0, MockCurrency.usd);
 
-        expect(-money, equals(Money(0, MockCurrency.usd)));
+        expect(-money, equals(Money.fromInt(0, MockCurrency.usd)));
       });
 
       test('positive amount', () {
-        final money = Money(100, MockCurrency.usd);
+        final money = Money.fromInt(100, MockCurrency.usd);
 
-        expect(-money, equals(Money(-100, MockCurrency.usd)));
+        expect(-money, equals(Money.fromInt(-100, MockCurrency.usd)));
       });
 
       test('negative amount', () {
-        final money = Money(-100, MockCurrency.usd);
+        final money = Money.fromInt(-100, MockCurrency.usd);
 
-        expect(-money, Money(100, MockCurrency.usd));
+        expect(-money, Money.fromInt(100, MockCurrency.usd));
       });
     });
 
     group('-()', () {
       test('error for different currencies', () {
-        final minuend = Money(100, MockCurrency.usd);
-        final subtrahend = Money(100, MockCurrency.eur);
+        final minuend = Money.fromInt(100, MockCurrency.usd);
+        final subtrahend = Money.fromInt(100, MockCurrency.eur);
 
         expect(() => minuend - subtrahend, throwsArgumentError);
       });
 
       test('0.00 USD - 0.00 USD', () {
-        final a = Money(0, MockCurrency.usd);
-        final b = Money(0, MockCurrency.usd);
+        final a = Money.fromInt(0, MockCurrency.usd);
+        final b = Money.fromInt(0, MockCurrency.usd);
 
-        expect(a - b, equals(Money(0, MockCurrency.usd)));
+        expect(a - b, equals(Money.fromInt(0, MockCurrency.usd)));
       });
 
       test('0.00 USD - 1.00 USD', () {
-        final a = Money(0, MockCurrency.usd);
-        final b = Money(100, MockCurrency.usd);
+        final a = Money.fromInt(0, MockCurrency.usd);
+        final b = Money.fromInt(100, MockCurrency.usd);
 
-        expect(a - b, equals(Money(-100, MockCurrency.usd)));
+        expect(a - b, equals(Money.fromInt(-100, MockCurrency.usd)));
       });
 
       test('2.00 USD - 1.00 USD', () {
-        final a = Money(200, MockCurrency.usd);
-        final b = Money(100, MockCurrency.usd);
+        final a = Money.fromInt(200, MockCurrency.usd);
+        final b = Money.fromInt(100, MockCurrency.usd);
 
-        expect(a - b, equals(Money(100, MockCurrency.usd)));
+        expect(a - b, equals(Money.fromInt(100, MockCurrency.usd)));
       });
 
       test('-2.00 USD - 1.00 USD', () {
-        final a = Money(-200, MockCurrency.usd);
-        final b = Money(100, MockCurrency.usd);
+        final a = Money.fromInt(-200, MockCurrency.usd);
+        final b = Money.fromInt(100, MockCurrency.usd);
 
-        expect(a - b, equals(Money(-300, MockCurrency.usd)));
+        expect(a - b, equals(Money.fromInt(-300, MockCurrency.usd)));
       });
     });
 
     group('+()', () {
       test('error for different currencies', () {
-        final a = Money(100, MockCurrency.usd);
-        final b = Money(100, MockCurrency.eur);
+        final a = Money.fromInt(100, MockCurrency.usd);
+        final b = Money.fromInt(100, MockCurrency.eur);
 
         expect(() => a + b, throwsArgumentError);
       });
 
       test('0.00 USD + 0.00 USD', () {
-        final a = Money(0, MockCurrency.usd);
-        final b = Money(0, MockCurrency.usd);
+        final a = Money.fromInt(0, MockCurrency.usd);
+        final b = Money.fromInt(0, MockCurrency.usd);
 
-        expect(a + b, equals(Money(0, MockCurrency.usd)));
+        expect(a + b, equals(Money.fromInt(0, MockCurrency.usd)));
       });
 
       test('0.00 USD + 1.00 USD', () {
-        final a = Money(0, MockCurrency.usd);
-        final b = Money(100, MockCurrency.usd);
+        final a = Money.fromInt(0, MockCurrency.usd);
+        final b = Money.fromInt(100, MockCurrency.usd);
 
-        expect(a + b, equals(Money(100, MockCurrency.usd)));
+        expect(a + b, equals(Money.fromInt(100, MockCurrency.usd)));
       });
 
       test('1.00 USD + 0.00 USD', () {
-        final a = Money(100, MockCurrency.usd);
-        final b = Money(0, MockCurrency.usd);
+        final a = Money.fromInt(100, MockCurrency.usd);
+        final b = Money.fromInt(0, MockCurrency.usd);
 
-        expect(a + b, equals(Money(100, MockCurrency.usd)));
+        expect(a + b, equals(Money.fromInt(100, MockCurrency.usd)));
       });
 
       test('1.00 USD + 2.00 USD', () {
-        final a = Money(100, MockCurrency.usd);
-        final b = Money(200, MockCurrency.usd);
+        final a = Money.fromInt(100, MockCurrency.usd);
+        final b = Money.fromInt(200, MockCurrency.usd);
 
-        expect(a + b, equals(Money(300, MockCurrency.usd)));
+        expect(a + b, equals(Money.fromInt(300, MockCurrency.usd)));
       });
 
       test('-1.00 USD + 2.00 USD', () {
-        final a = Money(-100, MockCurrency.usd);
-        final b = Money(200, MockCurrency.usd);
+        final a = Money.fromInt(-100, MockCurrency.usd);
+        final b = Money.fromInt(200, MockCurrency.usd);
 
-        expect(a + b, equals(Money(100, MockCurrency.usd)));
+        expect(a + b, equals(Money.fromInt(100, MockCurrency.usd)));
       });
-
     });
 
     group('compareTo()', () {
       test('error for different currencies', () {
-        final a = Money(200, MockCurrency.usd);
-        final b = Money(100, MockCurrency.eur);
+        final a = Money.fromInt(200, MockCurrency.usd);
+        final b = Money.fromInt(100, MockCurrency.eur);
 
         expect(() => a.compareTo(b), throwsArgumentError);
       });
 
-
       test('0.00 USD equal to 0.00 USD', () {
-        final a = Money(0, MockCurrency.usd);
-        final b = Money(0, MockCurrency.usd);
+        final a = Money.fromInt(0, MockCurrency.usd);
+        final b = Money.fromInt(0, MockCurrency.usd);
 
         expect(a.compareTo(b), equals(0));
       });
 
       test('0.00 USD greater than -0.01 USD', () {
-        final a = Money(1, MockCurrency.usd);
-        final b = Money(0, MockCurrency.usd);
+        final a = Money.fromInt(1, MockCurrency.usd);
+        final b = Money.fromInt(0, MockCurrency.usd);
 
         expect(a.compareTo(b), equals(1));
       });
 
       test('0.00 USD less than 0.01 USD', () {
-        final a = Money(0, MockCurrency.usd);
-        final b = Money(1, MockCurrency.usd);
+        final a = Money.fromInt(0, MockCurrency.usd);
+        final b = Money.fromInt(1, MockCurrency.usd);
 
         expect(a.compareTo(b), equals(-1));
       });
 
       test('-1.00 USD greater than -2.00 USD', () {
-        final a = Money(-100, MockCurrency.usd);
-        final b = Money(-200, MockCurrency.usd);
+        final a = Money.fromInt(-100, MockCurrency.usd);
+        final b = Money.fromInt(-200, MockCurrency.usd);
 
         expect(a.compareTo(b), equals(1));
       });
@@ -393,8 +398,8 @@ void main() {
 
     group('relational operators', () {
       test('trows ArgumentError if currencies are not equal', () {
-        final a = Money(0, MockCurrency.usd);
-        final b = Money(0, MockCurrency.eur);
+        final a = Money.fromInt(0, MockCurrency.usd);
+        final b = Money.fromInt(0, MockCurrency.eur);
 
         expect(() => a < b, throwsArgumentError);
         expect(() => a <= b, throwsArgumentError);
@@ -404,8 +409,8 @@ void main() {
 
       group('<()', () {
         test('0.00 USD < 0.00 USD', () {
-          final a = Money(0, MockCurrency.usd);
-          final b = Money(-0, MockCurrency.usd);
+          final a = Money.fromInt(0, MockCurrency.usd);
+          final b = Money.fromInt(-0, MockCurrency.usd);
 
           expect(a < a, isFalse);
           expect(a < b, isFalse);
@@ -413,22 +418,22 @@ void main() {
         });
 
         test('1.00 USD < 2.00 USD (true)', () {
-          final a = Money(100, MockCurrency.usd);
-          final b = Money(200, MockCurrency.usd);
+          final a = Money.fromInt(100, MockCurrency.usd);
+          final b = Money.fromInt(200, MockCurrency.usd);
 
           expect(a < b, isTrue);
         });
 
         test('1.00 USD < 1.00 USD (false)', () {
-          final a = Money(100, MockCurrency.usd);
-          final b = Money(100, MockCurrency.usd);
+          final a = Money.fromInt(100, MockCurrency.usd);
+          final b = Money.fromInt(100, MockCurrency.usd);
 
           expect(a < b, isFalse);
         });
 
         test('2.00 USD < 1.00 USD (false)', () {
-          final a = Money(200, MockCurrency.usd);
-          final b = Money(100, MockCurrency.usd);
+          final a = Money.fromInt(200, MockCurrency.usd);
+          final b = Money.fromInt(100, MockCurrency.usd);
 
           expect(a < b, isFalse);
         });
@@ -436,8 +441,8 @@ void main() {
 
       group('<=()', () {
         test('0.00 USD <= 0.00 USD', () {
-          final a = Money(0, MockCurrency.usd);
-          final b = Money(-0, MockCurrency.usd);
+          final a = Money.fromInt(0, MockCurrency.usd);
+          final b = Money.fromInt(-0, MockCurrency.usd);
 
           expect(a <= a, isTrue);
           expect(a <= b, isTrue);
@@ -445,22 +450,22 @@ void main() {
         });
 
         test('1.00 USD <= 2.00 USD (true)', () {
-          final a = Money(100, MockCurrency.usd);
-          final b = Money(200, MockCurrency.usd);
+          final a = Money.fromInt(100, MockCurrency.usd);
+          final b = Money.fromInt(200, MockCurrency.usd);
 
           expect(a <= b, isTrue);
         });
 
         test('1.00 USD <= 1.00 USD (true)', () {
-          final a = Money(100, MockCurrency.usd);
-          final b = Money(100, MockCurrency.usd);
+          final a = Money.fromInt(100, MockCurrency.usd);
+          final b = Money.fromInt(100, MockCurrency.usd);
 
           expect(a <= b, isTrue);
         });
 
         test('2.00 USD <= 1.00 USD (false)', () {
-          final a = Money(200, MockCurrency.usd);
-          final b = Money(100, MockCurrency.usd);
+          final a = Money.fromInt(200, MockCurrency.usd);
+          final b = Money.fromInt(100, MockCurrency.usd);
 
           expect(a <= b, isFalse);
         });
@@ -468,8 +473,8 @@ void main() {
 
       group('>()', () {
         test('0.00 USD > 0.00 USD', () {
-          final a = Money(0, MockCurrency.usd);
-          final b = Money(-0, MockCurrency.usd);
+          final a = Money.fromInt(0, MockCurrency.usd);
+          final b = Money.fromInt(-0, MockCurrency.usd);
 
           expect(a > a, isFalse);
           expect(a > b, isFalse);
@@ -477,22 +482,22 @@ void main() {
         });
 
         test('2.00 USD > 1.00 USD (true)', () {
-          final a = Money(200, MockCurrency.usd);
-          final b = Money(100, MockCurrency.usd);
+          final a = Money.fromInt(200, MockCurrency.usd);
+          final b = Money.fromInt(100, MockCurrency.usd);
 
           expect(a > b, isTrue);
         });
 
         test('1.00 USD > 1.00 USD (false)', () {
-          final a = Money(100, MockCurrency.usd);
-          final b = Money(100, MockCurrency.usd);
+          final a = Money.fromInt(100, MockCurrency.usd);
+          final b = Money.fromInt(100, MockCurrency.usd);
 
           expect(a > b, isFalse);
         });
 
         test('1.00 USD > 2.00 USD (false)', () {
-          final a = Money(100, MockCurrency.usd);
-          final b = Money(200, MockCurrency.usd);
+          final a = Money.fromInt(100, MockCurrency.usd);
+          final b = Money.fromInt(200, MockCurrency.usd);
 
           expect(a > b, isFalse);
         });
@@ -500,8 +505,8 @@ void main() {
 
       group('>=()', () {
         test('0.00 USD >= 0.00 USD', () {
-          final a = Money(0, MockCurrency.usd);
-          final b = Money(-0, MockCurrency.usd);
+          final a = Money.fromInt(0, MockCurrency.usd);
+          final b = Money.fromInt(-0, MockCurrency.usd);
 
           expect(a >= a, isTrue);
           expect(a >= b, isTrue);
@@ -509,22 +514,22 @@ void main() {
         });
 
         test('2.00 USD >= 1.00 USD (true)', () {
-          final a = Money(200, MockCurrency.usd);
-          final b = Money(100, MockCurrency.usd);
+          final a = Money.fromInt(200, MockCurrency.usd);
+          final b = Money.fromInt(100, MockCurrency.usd);
 
           expect(a >= b, isTrue);
         });
 
         test('1.00 USD >= 1.00 USD (true)', () {
-          final a = Money(100, MockCurrency.usd);
-          final b = Money(100, MockCurrency.usd);
+          final a = Money.fromInt(100, MockCurrency.usd);
+          final b = Money.fromInt(100, MockCurrency.usd);
 
           expect(a >= b, isTrue);
         });
 
         test('1.00 USD >= 2.00 USD (false)', () {
-          final a = Money(100, MockCurrency.usd);
-          final b = Money(200, MockCurrency.usd);
+          final a = Money.fromInt(100, MockCurrency.usd);
+          final b = Money.fromInt(200, MockCurrency.usd);
 
           expect(a >= b, isFalse);
         });
@@ -533,107 +538,115 @@ void main() {
 
     group('*()', () {
       test('0.00 USD * 0', () {
-        final money = Money(0, MockCurrency.usd);
+        final money = Money.fromInt(0, MockCurrency.usd);
         final factor = 0;
 
-        expect(money * factor, equals(Money(0, MockCurrency.usd)));
+        expect(money * factor, equals(Money.fromInt(0, MockCurrency.usd)));
       });
 
       test('0.00 USD * 0.0', () {
-        final money = Money(0, MockCurrency.usd);
+        final money = Money.fromInt(0, MockCurrency.usd);
         final factor = 0.0;
 
-        expect(money * factor, equals(Money(0, MockCurrency.usd)));
+        expect(money * factor, equals(Money.fromInt(0, MockCurrency.usd)));
       });
 
       test('0.00 USD * 10', () {
-        final money = Money(0, MockCurrency.usd);
+        final money = Money.fromInt(0, MockCurrency.usd);
         final factor = 10;
 
-        expect(money * factor, equals(Money(0, MockCurrency.usd)));
+        expect(money * factor, equals(Money.fromInt(0, MockCurrency.usd)));
       });
 
       test('10 USD * 2', () {
-        final money = Money(1000, MockCurrency.usd);
+        final money = Money.fromInt(1000, MockCurrency.usd);
         final factor = 2;
 
-        expect(money * factor, equals(Money(2000, MockCurrency.usd)));
+        expect(money * factor, equals(Money.fromInt(2000, MockCurrency.usd)));
       });
 
       test('10 USD * 2.0', () {
-        final money = Money(1000, MockCurrency.usd);
+        final money = Money.fromInt(1000, MockCurrency.usd);
         final factor = 2.0;
 
-        expect(money * factor, equals(Money(2000, MockCurrency.usd)));
+        expect(money * factor, equals(Money.fromInt(2000, MockCurrency.usd)));
       });
 
       test('10 USD * 0.5', () {
-        final money = Money(1000, MockCurrency.usd);
+        final money = Money.fromInt(1000, MockCurrency.usd);
         final factor = 0.5;
 
-        expect(money * factor, equals(Money(500, MockCurrency.usd)));
+        expect(money * factor, equals(Money.fromInt(500, MockCurrency.usd)));
       });
 
       test('10 USD * 0.333', () {
-        final money = Money(1000, MockCurrency.usd);
+        final money = Money.fromInt(1000, MockCurrency.usd);
         final factor = 0.333;
 
-        expect(money * factor, equals(Money(333, MockCurrency.usd)));
+        expect(money * factor, equals(Money.fromInt(333, MockCurrency.usd)));
       });
 
       test('10 USD * 0.3334', () {
-        final money = Money(1000, MockCurrency.usd);
+        final money = Money.fromInt(1000, MockCurrency.usd);
         final factor = 0.3334;
 
-        expect(money * factor, equals(Money(333, MockCurrency.usd)));
+        expect(money * factor, equals(Money.fromInt(333, MockCurrency.usd)));
       });
 
       test('10 USD * 0.3335', () {
-        final money = Money(1000, MockCurrency.usd);
+        final money = Money.fromInt(1000, MockCurrency.usd);
         final factor = 0.3335;
 
-        expect(money * factor, equals(Money(334, MockCurrency.usd)));
+        expect(money * factor, equals(Money.fromInt(334, MockCurrency.usd)));
       });
     });
 
     test('allocate()', () {
-      final money = Money(99, MockCurrency.usd);
-      final rates = <int>[10, 10, 10, 10, 10, 10, 10, 10, 10, 10]; // length = 10
+      final money = Money.fromInt(99, MockCurrency.usd);
+      final rates = <int>[
+        10,
+        10,
+        10,
+        10,
+        10,
+        10,
+        10,
+        10,
+        10,
+        10
+      ]; // length = 10
 
-      expect(
-          money.allocate(rates),
-          [
-            Money(10, MockCurrency.usd),
-            Money(10, MockCurrency.usd),
-            Money(10, MockCurrency.usd),
-            Money(10, MockCurrency.usd),
-            Money(10, MockCurrency.usd),
-            Money(10, MockCurrency.usd),
-            Money(10, MockCurrency.usd),
-            Money(10, MockCurrency.usd),
-            Money(10, MockCurrency.usd),
-            Money(9, MockCurrency.usd),
-          ]
-      );
+      expect(money.allocate(rates), [
+        Money.fromInt(10, MockCurrency.usd),
+        Money.fromInt(10, MockCurrency.usd),
+        Money.fromInt(10, MockCurrency.usd),
+        Money.fromInt(10, MockCurrency.usd),
+        Money.fromInt(10, MockCurrency.usd),
+        Money.fromInt(10, MockCurrency.usd),
+        Money.fromInt(10, MockCurrency.usd),
+        Money.fromInt(10, MockCurrency.usd),
+        Money.fromInt(10, MockCurrency.usd),
+        Money.fromInt(9, MockCurrency.usd),
+      ]);
     });
 
     test('toString()', () {
-      expect(Money(0, MockCurrency.usd).toString(), '0.00 USD');
-      expect(Money(1, MockCurrency.usd).toString(), '0.01 USD');
-      expect(Money(10, MockCurrency.usd).toString(), '0.10 USD');
-      expect(Money(100, MockCurrency.usd).toString(), '1.00 USD');
-      expect(Money(101, MockCurrency.usd).toString(), '1.01 USD');
-      expect(Money(110, MockCurrency.usd).toString(), '1.10 USD');
+      expect(Money.fromInt(0, MockCurrency.usd).toString(), '0.00 USD');
+      expect(Money.fromInt(1, MockCurrency.usd).toString(), '0.01 USD');
+      expect(Money.fromInt(10, MockCurrency.usd).toString(), '0.10 USD');
+      expect(Money.fromInt(100, MockCurrency.usd).toString(), '1.00 USD');
+      expect(Money.fromInt(101, MockCurrency.usd).toString(), '1.01 USD');
+      expect(Money.fromInt(110, MockCurrency.usd).toString(), '1.10 USD');
 
-      expect(Money(-100, MockCurrency.usd).toString(), '-1.00 USD');
-      expect(Money(-101, MockCurrency.usd).toString(), '-1.01 USD');
-      expect(Money(-110, MockCurrency.usd).toString(), '-1.10 USD');
+      expect(Money.fromInt(-100, MockCurrency.usd).toString(), '-1.00 USD');
+      expect(Money.fromInt(-101, MockCurrency.usd).toString(), '-1.01 USD');
+      expect(Money.fromInt(-110, MockCurrency.usd).toString(), '-1.10 USD');
 
       // Bug #3
-      expect(Money(199, MockCurrency.usd).toString(), '1.99 USD');
-      expect(Money(-199, MockCurrency.usd).toString(), '-1.99 USD');
+      expect(Money.fromInt(199, MockCurrency.usd).toString(), '1.99 USD');
+      expect(Money.fromInt(-199, MockCurrency.usd).toString(), '-1.99 USD');
 
-      expect(Money(0, MockCurrency.iqd).toString(), '0.000 IQD');
+      expect(Money.fromInt(0, MockCurrency.iqd).toString(), '0.000 IQD');
     });
   });
 }

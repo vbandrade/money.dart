@@ -20,37 +20,41 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+import 'package:built_value/built_value.dart';
+import 'package:built_value/serializer.dart';
+import 'currencies.dart';
 
-part of money;
+part 'currency.g.dart';
 
 /// Currency Value Object.
-class Currency {
+abstract class Currency implements Built<Currency, CurrencyBuilder> {
+  Currency._();
+  factory Currency([updates(CurrencyBuilder b)]) = _$Currency;
+  static Serializer<Currency> get serializer => _$currencySerializer;
+
   /// The ISO 4217 currency code of this currency.
-  final String code;
+  String get code;
 
   /// The name that is suitable for displaying this currency.
-  final String name;
+  String get name;
 
   /// The ISO 4217 numeric code of this currency.
-  final int numericCode;
+  int get numericCode;
 
   /// The default number of fraction digits used with this currency.
-  final int defaultFractionDigits;
-  final int subUnit;
+  int get defaultFractionDigits;
+  int get subUnit;
 
   /// Constructs currency by ISO 4217 code.
   ///
   /// It throws [ArgumentError] if [code] is unregistered ISO code of currency.
-  factory Currency(String code) {
-    if (code == null || !_currencies.containsKey(code.toUpperCase())) {
+  factory Currency.fromCode(String code) {
+    if (code == null || !currencies.containsKey(code.toUpperCase())) {
       throw ArgumentError.value(code, 'code', 'Unknown currency code "$code".');
     }
 
-    return _currencies[code.toUpperCase()];
+    return currencies[code.toUpperCase()];
   }
-
-  const Currency._private(this.code, this.name, this.numericCode,
-      this.defaultFractionDigits, this.subUnit);
 
   /// Returns the ISO 4217 currency code of this currency.
   @override
