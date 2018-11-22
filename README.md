@@ -1,6 +1,6 @@
 # Money
 
-> Dart implementation of [Fowler's Money pattern](http://martinfowler.com/eaaCatalog/money.html).
+> Dart implementation of [Fowler's Money pattern](http://martinfowler.com/eaaCatalog/money.html). *Forked to use [built_value](https://github.com/google/built_value.dart)
 
 [![Pub version](https://img.shields.io/pub/v/money.svg)](https://pub.dartlang.org/packages/money)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/LitGroup/money.dart/blob/master/LICENSE)
